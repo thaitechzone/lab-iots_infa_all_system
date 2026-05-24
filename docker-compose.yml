@@ -1,0 +1,111 @@
+services:
+  nodered:
+    image: nodered/node-red:latest
+    container_name: iot_nodered
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ}
+    ports:
+      - "${NODERED_PORT}:1880"
+    volumes:
+      - nodered_data:/data
+    networks:
+      - iot_net
+    depends_on:
+      - mqtt
+      - influxdb
+
+  mqtt:
+    image: eclipse-mosquitto:latest
+    container_name: iot_mosquitto
+    restart: unless-stopped
+    ports:
+      - "${MQTT_PORT}:1883"
+      - "${MQTT_WS_PORT}:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    networks:
+      - iot_net
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: iot_n8n
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ}
+      GENERIC_TIMEZONE: ${TZ}
+      N8N_HOST: n8n
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: ${NGROK_URL}
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+    ports:
+      - "${N8N_PORT}:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - iot_net
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: iot_ngrok
+    restart: unless-stopped
+    command:
+      - http
+      - "n8n:5678"
+      - "--domain=${NGROK_DOMAIN}"
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    ports:
+      - "${NGROK_DASHBOARD_PORT}:4040"
+    networks:
+      - iot_net
+    depends_on:
+      - n8n
+
+  influxdb:
+    image: influxdb:latest
+    container_name: iot_influxdb
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ}
+    ports:
+      - "${INFLUXDB_PORT}:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+      - influxdb_config:/etc/influxdb2
+    networks:
+      - iot_net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: iot_grafana
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ}
+      GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "${GRAFANA_PORT}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - iot_net
+    depends_on:
+      - influxdb
+
+networks:
+  iot_net:
+    driver: bridge
+
+volumes:
+  nodered_data:
+  mosquitto_data:
+  mosquitto_log:
+  n8n_data:
+  influxdb_data:
+  influxdb_config:
+  grafana_data:

@@ -1,0 +1,10 @@
+.env
+
+# Docker runtime data if bind mounts are added later
+data/
+logs/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
