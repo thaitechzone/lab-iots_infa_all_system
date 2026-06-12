@@ -29,42 +29,6 @@ services:
     networks:
       - iot_net
 
-  n8n:
-    image: n8nio/n8n:latest
-    container_name: iot_n8n
-    restart: unless-stopped
-    environment:
-      TZ: ${TZ}
-      GENERIC_TIMEZONE: ${TZ}
-      N8N_HOST: n8n
-      N8N_PORT: 5678
-      N8N_PROTOCOL: http
-      WEBHOOK_URL: ${NGROK_URL}
-      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
-    ports:
-      - "${N8N_PORT}:5678"
-    volumes:
-      - n8n_data:/home/node/.n8n
-    networks:
-      - iot_net
-
-  ngrok:
-    image: ngrok/ngrok:latest
-    container_name: iot_ngrok
-    restart: unless-stopped
-    command:
-      - http
-      - "n8n:5678"
-      - "--domain=${NGROK_DOMAIN}"
-    environment:
-      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
-    ports:
-      - "${NGROK_DASHBOARD_PORT}:4040"
-    networks:
-      - iot_net
-    depends_on:
-      - n8n
-
   influxdb:
     image: influxdb:latest
     container_name: iot_influxdb
@@ -105,7 +69,6 @@ volumes:
   nodered_data:
   mosquitto_data:
   mosquitto_log:
-  n8n_data:
   influxdb_data:
   influxdb_config:
   grafana_data:

@@ -37,16 +37,6 @@ notepad .env
 
 ```env
 GF_SECURITY_ADMIN_PASSWORD=change-me-in-local-env
-N8N_ENCRYPTION_KEY=change-me-to-32-char-random-key!!
-NGROK_AUTHTOKEN=your-ngrok-authtoken-here
-NGROK_DOMAIN=your-domain.ngrok-free.app
-NGROK_URL=https://your-domain.ngrok-free.app
-```
-
-สร้าง `N8N_ENCRYPTION_KEY` แบบสุ่ม 32 ตัวอักษรด้วย PowerShell:
-
-```powershell
--join ((1..32)|%{[char](Get-Random -Min 97 -Max 123)})
 ```
 
 ## 3. ตรวจสอบ Docker Compose
@@ -71,8 +61,6 @@ Images ที่จะถูกใช้:
 
 - `nodered/node-red`
 - `eclipse-mosquitto`
-- `n8nio/n8n`
-- `ngrok/ngrok`
 - `influxdb`
 - `grafana/grafana`
 
@@ -105,8 +93,6 @@ docker compose logs
 ```powershell
 docker compose logs nodered
 docker compose logs mqtt
-docker compose logs n8n
-docker compose logs ngrok
 docker compose logs influxdb
 docker compose logs grafana
 ```
@@ -125,8 +111,6 @@ docker compose logs -f
 Node-RED:         http://localhost:1880
 MQTT TCP:         localhost:1883
 MQTT WebSocket:   ws://localhost:9001
-n8n:              http://localhost:5678
-ngrok dashboard:  http://localhost:4040
 InfluxDB:         http://localhost:8086
 Grafana:          http://localhost:3000
 ```
@@ -204,32 +188,9 @@ Port:
 http://influxdb:8086
 ```
 
-5. ถ้าต้องเรียก n8n webhook จาก Node-RED ให้ใช้ host:
+5. สร้าง flow สำหรับรับ MQTT, ตรวจสอบ payload, บันทึกลง InfluxDB และส่ง debug/แจ้งเตือนตามที่ต้องการ
 
-```text
-http://n8n:5678
-```
-
-## 11. ตั้งค่า n8n และ ngrok
-
-1. เปิด `http://localhost:5678`
-2. สร้างบัญชี n8n ครั้งแรก
-3. เปิด ngrok dashboard ที่ `http://localhost:4040`
-4. ตรวจว่า ngrok forward ไปยัง:
-
-```text
-n8n:5678
-```
-
-Webhook ภายนอกควรใช้ค่า:
-
-```env
-NGROK_URL=https://your-domain.ngrok-free.app
-```
-
-สำหรับ Google OAuth หรือ external webhooks ให้ใช้ URL จาก ngrok เป็น callback/webhook URL
-
-## 12. คำสั่งจัดการระบบ
+## 11. คำสั่งจัดการระบบ
 
 หยุด service ทั้งหมด:
 
@@ -261,9 +222,9 @@ docker compose down
 docker compose up -d
 ```
 
-## 13. Reset ระบบแบบล้างข้อมูลทั้งหมด
+## 12. Reset ระบบแบบล้างข้อมูลทั้งหมด
 
-คำสั่งนี้จะลบ container และ volume ทั้งหมด ข้อมูล InfluxDB, Grafana, Node-RED, n8n และ Mosquitto จะหายทั้งหมด
+คำสั่งนี้จะลบ container และ volume ทั้งหมด ข้อมูล InfluxDB, Grafana, Node-RED และ Mosquitto จะหายทั้งหมด
 
 ```powershell
 docker compose down -v
@@ -272,7 +233,7 @@ docker compose up -d
 
 ใช้เฉพาะเมื่อต้องการเริ่มใหม่จากศูนย์จริง ๆ
 
-## 14. ตรวจปัญหาเบื้องต้น
+## 13. ตรวจปัญหาเบื้องต้น
 
 ดู container ที่รันอยู่:
 
@@ -310,7 +271,7 @@ docker compose up -d
 docker compose restart
 ```
 
-## 15. ใช้งาน ESP32 Energy Simulator ด้วย VS Code + PlatformIO
+## 14. ใช้งาน ESP32 Energy Simulator ด้วย VS Code + PlatformIO
 
 โฟลเดอร์ `esp32_energy_sim` คือ firmware สำหรับ ESP32 ที่จำลองระบบพลังงานไฟฟ้า 3 เฟส แล้วส่งข้อมูลผ่าน MQTT ไปยัง Mosquitto/Node-RED
 
@@ -342,7 +303,7 @@ Topic รับคำสั่งควบคุม:
 factory/factory_01/control
 ```
 
-### 15.1 ติดตั้งเครื่องมือ
+### 14.1 ติดตั้งเครื่องมือ
 
 ติดตั้งโปรแกรมและ extension ต่อไปนี้:
 
@@ -353,7 +314,7 @@ factory/factory_01/control
 5. กด Install
 6. รอ PlatformIO ติดตั้ง core และ reload VS Code
 
-### 15.2 เปิดโปรเจกต์ ESP32
+### 14.2 เปิดโปรเจกต์ ESP32
 
 ใน VS Code ให้เปิดโฟลเดอร์นี้:
 
@@ -376,7 +337,7 @@ src/main.cpp
 include/config.example.h
 ```
 
-### 15.3 สร้างไฟล์ config.h
+### 14.3 สร้างไฟล์ config.h
 
 ไฟล์ `include/config.h` เป็นไฟล์ config จริงของเครื่อง local และไม่ถูก commit เข้า Git เพราะมี Wi-Fi/password
 
@@ -426,7 +387,7 @@ ipconfig
 #define MQTT_BROKER "192.168.0.161"
 ```
 
-### 15.4 Start Docker Stack ก่อน
+### 14.4 Start Docker Stack ก่อน
 
 ก่อน upload firmware ควรเปิด Docker stack ให้ MQTT broker พร้อมรับข้อมูล:
 
@@ -442,7 +403,7 @@ docker compose ps
 docker compose logs mqtt
 ```
 
-### 15.5 Build Firmware
+### 14.5 Build Firmware
 
 ใน VS Code เปิด PlatformIO sidebar แล้วกด:
 
@@ -463,7 +424,7 @@ pio run
 SUCCESS
 ```
 
-### 15.6 Upload เข้า ESP32
+### 14.6 Upload เข้า ESP32
 
 เสียบ ESP32 ผ่าน USB แล้วตรวจว่า Windows มองเห็น serial port
 
@@ -485,7 +446,7 @@ pio run --target upload
 pio run --target upload --upload-port COM5
 ```
 
-### 15.7 เปิด Serial Monitor
+### 14.7 เปิด Serial Monitor
 
 หลัง upload เสร็จ เปิด serial monitor:
 
@@ -519,7 +480,7 @@ Published telemetry
 Ctrl + C
 ```
 
-### 15.8 ตรวจข้อมูลเข้า MQTT / Node-RED
+### 14.8 ตรวจข้อมูลเข้า MQTT / Node-RED
 
 เปิด Node-RED:
 
@@ -552,7 +513,7 @@ Topic: factory/factory_01/telemetry
 }
 ```
 
-### 15.9 ส่งคำสั่งควบคุมจาก Node-RED ไป ESP32
+### 14.9 ส่งคำสั่งควบคุมจาก Node-RED ไป ESP32
 
 ESP32 subscribe topic:
 
@@ -586,7 +547,7 @@ Port: 1883
 Topic: factory/factory_01/control
 ```
 
-### 15.10 Troubleshooting ESP32
+### 14.10 Troubleshooting ESP32
 
 ถ้า ESP32 ต่อ Wi-Fi ไม่ได้:
 

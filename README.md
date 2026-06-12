@@ -2,7 +2,7 @@
 
 ระบบ IoT Full Stack สำหรับทดลองและวางโครงสร้างระบบตรวจสอบพลังงาน/ข้อมูลโรงงาน โดยใช้ Docker Compose เป็นตัวจัดการบริการหลัก
 
-โปรเจกต์นี้ออกแบบมาให้เริ่มต้นแบบสะอาด ไม่มี flow, dashboard หรือ workflow ที่เตรียมไว้ล่วงหน้า ผู้ใช้งานสามารถสร้าง Node-RED flows, n8n workflows, InfluxDB buckets และ Grafana dashboards ได้เองจากศูนย์
+โปรเจกต์นี้ออกแบบมาให้เริ่มต้นแบบสะอาด ไม่มี flow หรือ dashboard ที่เตรียมไว้ล่วงหน้า ผู้ใช้งานสามารถสร้าง Node-RED flows, InfluxDB buckets และ Grafana dashboards ได้เองจากศูนย์
 
 ## ผู้ออกแบบ
 
@@ -14,11 +14,9 @@ Tel: `0939391546`
 
 | Service | หน้าที่ | URL / Port |
 | --- | --- | --- |
-| Node-RED | สร้าง IoT flow, รับข้อมูล MQTT, ประมวลผล, ส่งข้อมูลไป InfluxDB/n8n | `http://localhost:1880` |
+| Node-RED | สร้าง IoT flow, รับข้อมูล MQTT, ประมวลผล, ส่งข้อมูลไป InfluxDB | `http://localhost:1880` |
 | Mosquitto MQTT | MQTT broker สำหรับรับส่งข้อมูลจาก ESP32 หรือ IoT devices | `localhost:1883` |
 | Mosquitto WebSocket | MQTT ผ่าน WebSocket | `ws://localhost:9001` |
-| n8n | Workflow automation เช่น webhook, Google services, notification | `http://localhost:5678` |
-| ngrok | เปิด public URL ให้ n8n ใช้กับ Google OAuth และ external webhooks | `http://localhost:4040` |
 | InfluxDB | Time-series database สำหรับเก็บข้อมูล sensor/energy | `http://localhost:8086` |
 | Grafana | Dashboard visualization สำหรับแสดงผลข้อมูลจาก InfluxDB | `http://localhost:3000` |
 
@@ -42,7 +40,6 @@ Tel: `0939391546`
 
 - Docker Desktop
 - Git
-- ngrok account สำหรับใช้งาน external webhook หรือ Google OAuth กับ n8n
 
 ตรวจสอบ Docker:
 
@@ -75,16 +72,6 @@ notepad .env
 
 ```env
 GF_SECURITY_ADMIN_PASSWORD=change-me-in-local-env
-N8N_ENCRYPTION_KEY=change-me-to-32-char-random-key!!
-NGROK_AUTHTOKEN=your-ngrok-authtoken-here
-NGROK_DOMAIN=your-domain.ngrok-free.app
-NGROK_URL=https://your-domain.ngrok-free.app
-```
-
-สร้าง `N8N_ENCRYPTION_KEY` แบบสุ่ม 32 ตัวอักษรด้วย PowerShell:
-
-```powershell
--join ((1..32)|%{[char](Get-Random -Min 97 -Max 123)})
 ```
 
 ## ตรวจสอบ Compose Config
@@ -108,8 +95,6 @@ docker compose pull
 ```yaml
 nodered/node-red:latest
 eclipse-mosquitto:latest
-n8nio/n8n:latest
-ngrok/ngrok:latest
 influxdb:latest
 grafana/grafana:latest
 ```
@@ -213,19 +198,13 @@ Port: 1883
 URL: http://influxdb:8086
 ```
 
-ค่าการเรียก n8n webhook จาก Node-RED:
-
-```text
-Base URL: http://n8n:5678
-```
-
 ตัวอย่าง flow ที่ควรสร้าง:
 
 - MQTT subscribe รับข้อมูลจาก ESP32
 - Function node ตรวจสอบ/แปลง payload
 - InfluxDB node สำหรับบันทึก time-series data
 - Switch node ตรวจ threshold เช่น ค่า kW เกินกำหนด
-- HTTP request node เรียก webhook ไปยัง n8n
+- Debug node หรือ HTTP request node สำหรับตรวจสอบ/ส่งต่อข้อมูลไปยังระบบภายนอกตามต้องการ
 
 ## การใช้งาน MQTT กับ ESP32
 
@@ -256,39 +235,6 @@ factory/alerts/overload
   "energy_kwh": 154.8
 }
 ```
-
-## การใช้งาน n8n และ ngrok
-
-เปิด n8n:
-
-```text
-http://localhost:5678
-```
-
-เปิด ngrok dashboard:
-
-```text
-http://localhost:4040
-```
-
-ngrok จะ forward ไปที่ n8n ภายใน Docker network:
-
-```text
-n8n:5678
-```
-
-ค่า public URL ควรตรงกับ `.env`:
-
-```env
-NGROK_URL=https://your-domain.ngrok-free.app
-```
-
-ใช้ URL นี้สำหรับ:
-
-- n8n production webhook
-- Google OAuth callback
-- external service callback
-- notification webhook
 
 ## คำสั่งจัดการระบบ
 
@@ -355,8 +301,6 @@ docker volume ls
 ```powershell
 docker compose logs nodered
 docker compose logs mqtt
-docker compose logs n8n
-docker compose logs ngrok
 docker compose logs influxdb
 docker compose logs grafana
 ```
@@ -365,7 +309,6 @@ docker compose logs grafana
 
 - ห้าม commit ไฟล์ `.env` เพราะมี password/token จริง
 - `.gitignore` ตั้งค่าให้ ignore `.env` แล้ว
-- หาก ngrok token หลุด ควร rotate token ทันทีใน ngrok dashboard
 - สำหรับ production ควรตั้ง password ที่แข็งแรง และควรเปิด authentication ให้ MQTT
 - Mosquitto config ปัจจุบันเปิด `allow_anonymous true` เพื่อความสะดวกใน lab/dev
 
