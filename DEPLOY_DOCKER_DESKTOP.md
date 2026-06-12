@@ -36,7 +36,10 @@ notepad .env
 ค่าที่ควรเปลี่ยนก่อนรันจริง:
 
 ```env
+GF_SECURITY_ADMIN_USER=admin
 GF_SECURITY_ADMIN_PASSWORD=change-me-in-local-env
+INFLUXDB_ADMIN_USER=admin
+INFLUXDB_ADMIN_PASSWORD=change-me-in-local-env
 ```
 
 ## 3. ตรวจสอบ Docker Compose
@@ -123,27 +126,7 @@ Grafana:          http://localhost:3000
 4. สร้าง Organization
 5. สร้าง Bucket
 6. สร้าง API Token แบบ read/write สำหรับ bucket
-7. บันทึกค่า Organization, Bucket และ Token ไว้
-
-จากนั้นเปิด `.env`:
-
-```powershell
-notepad .env
-```
-
-เพิ่มหรือแก้ค่าต่อไปนี้:
-
-```env
-INFLUXDB_ORG=ชื่อ-organization-ของคุณ
-INFLUXDB_BUCKET=ชื่อ-bucket-ของคุณ
-INFLUXDB_TOKEN=token-api-ของคุณ
-```
-
-รีสตาร์ท service ที่ต้องใช้ค่า InfluxDB:
-
-```powershell
-docker compose restart nodered grafana
-```
+7. บันทึกค่า Organization, Bucket และ Token ไว้ใช้ตอนตั้งค่า Grafana หรือ Node-RED
 
 ## 9. ตั้งค่า Grafana
 

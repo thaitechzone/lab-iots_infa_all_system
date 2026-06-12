@@ -19,5 +19,5 @@
 #define PUBLISH_INTERVAL_MS  5000UL
 #define DEMAND_WINDOW_MS     (15UL * 60 * 1000)
 
-// Keep this aligned with ALERT_KW in .env for the Node-RED alert flow.
+// Keep this aligned with the threshold configured in your Node-RED alert flow.
 #define ALERT_KW      130.0f

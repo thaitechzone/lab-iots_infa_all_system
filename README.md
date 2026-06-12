@@ -135,21 +135,7 @@ docker compose logs -f
 4. สร้าง Organization
 5. สร้าง Bucket
 6. สร้าง API Token ที่มีสิทธิ์ read/write กับ bucket
-7. บันทึกค่า Organization, Bucket และ Token
-
-จากนั้นเพิ่มค่าต่อไปนี้ใน `.env`:
-
-```env
-INFLUXDB_ORG=ชื่อ-organization-ของคุณ
-INFLUXDB_BUCKET=ชื่อ-bucket-ของคุณ
-INFLUXDB_TOKEN=token-api-ของคุณ
-```
-
-รีสตาร์ท service ที่ต้องใช้ข้อมูล InfluxDB:
-
-```powershell
-docker compose restart nodered grafana
-```
+7. บันทึกค่า Organization, Bucket และ Token ไว้ใช้ตอนตั้งค่า Grafana หรือ Node-RED
 
 ## การใช้งาน Grafana
 
