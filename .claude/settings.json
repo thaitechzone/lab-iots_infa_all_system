@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker compose *)",
+      "PowerShell(New-Item -ItemType Directory -Path \"d:\\\\GitHubData\\\\lab-iots_infa_all_system\\\\telegraf\" -Force)"
+    ]
+  }
+}
